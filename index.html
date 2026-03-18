@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Team Schedule Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --surface3: #232840;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --text: #f0f2f8;
+    --text-muted: #6b7498;
+    --text-dim: #3d4460;
+    --accent: #5b6ef5;
+    --accent-light: #7b8fff;
+    --accent-dim: rgba(91,110,245,0.15);
+    --green: #3ecf8e;
+    --green-dim: rgba(62,207,142,0.12);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.12);
+    --red: #f56060;
+    --red-dim: rgba(245,96,96,0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  /* ── LAYOUT ── */
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .nav { flex: 1; padding: 12px 10px; }
+  .nav-section { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-dim); text-transform: uppercase; padding: 0 8px; margin: 12px 0 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    user-select: none;
+    margin-bottom: 2px;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent-light); font-weight: 500; }
+  .nav-item .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-item .lock-badge {
+    margin-left: auto;
+    font-size: 10px;
+    background: var(--amber-dim);
+    color: var(--amber);
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .sidebar-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .main { flex: 1; padding: 28px 32px; overflow-y: auto; min-width: 0; }
+  /* ── HEADER ── */
+  .page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+  .page-sub { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+  /* ── VIEWS ── */
+  .view { display: none; animation: fadeIn 0.2s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  /* ── GRID ── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+  /* ── FORM ── */
+  .form-group { margin-bottom: 14px; }
+  .form-group label { font-size: 11px; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: 5px; letter-spacing: 0.04em; text-transform: uppercase; }
+  input[type="text"], input[type="time"], input[type="date"], input[type="password"], select {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 8px 16px; font-size: 13px; font-weight: 500;
+    border-radius: var(--radius); cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface3); border-color: var(--border-hover); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-xs { padding: 4px 9px; font-size: 11px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* ── METRICS ── */
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    text-align: center;
+  }
+  .metric-val { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+  .metric-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  /* ── DAY GRID ── */
+  .week-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .week-controls .week-label { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+  .day-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+  .day-cell {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 70px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .day-cell:hover { border-color: var(--border-hover); background: var(--surface3); }
+  .day-cell.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .day-cell.has-entry { border-color: rgba(91,110,245,0.3); }
+  .day-cell .dc-name { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+  .day-cell .dc-num { font-size: 16px; font-weight: 600; }
+  .day-cell .dc-tag { font-size: 9px; padding: 2px 6px; border-radius: 5px; font-weight: 500; }
+  .tag-working { background: var(--accent-dim); color: var(--accent-light); }
+  .tag-remote { background: var(--green-dim); color: var(--green); }
+  .tag-travel { background: var(--amber-dim); color: var(--amber); }
+  .tag-off { background: rgba(255,255,255,0.04); color: var(--text-dim); }
+  /* ── DAY EDIT ── */
+  .day-edit-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .day-edit-panel h4 { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  /* ── MASTER TABLE ── */
+  .master-scroll { overflow-x: auto; border-radius: var(--radius); }
+  .sched-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; min-width: 600px; }
+  .sched-table thead th {
+    background: var(--surface2);
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    position: sticky; top: 0; z-index: 2;
+  }
+  .sched-table thead th:first-child { text-align: left; border-radius: var(--radius) 0 0 0; }
+  .sched-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  .sched-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+  }
+  .sched-table td:first-child { text-align: left; }
+  .member-cell { display: flex; align-items: center; gap: 8px; }
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .cell-pill {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 6px;
+    font-size: 10px; font-weight: 500;
+    font-family: 'DM Mono', monospace;
+  }
+  /* ── AVAILABILITY ── */
+  .avail-day-header {
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 8px 0 6px; margin-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .avail-day-header:first-child { border-top: none; margin-top: 0; }
+  .avail-slot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    transition: border-color 0.15s;
+  }
+  .avail-slot:hover { border-color: var(--border-hover); }
+  .avail-time { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; }
+  .avail-names { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .avail-badge {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .count-pill {
+    background: var(--green-dim); color: var(--green);
+    padding: 4px 10px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+  }
+  .pct-label { font-size: 11px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+  /* ── AI BOX ── */
+  .ai-output {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    min-height: 160px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ai-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ai-chip {
+    padding: 7px 14px; font-size: 12px; font-weight: 500;
+    border-radius: var(--radius); cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .ai-chip:hover { background: var(--accent-dim); border-color: rgba(91,110,245,0.4); color: var(--accent-light); }
+  .ai-input-row { display: flex; gap: 8px; }
+  .ai-input-row input { flex: 1; }
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 3px; }
+  /* ── LOCK SCREEN ── */
+  .lock-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .lock-screen.show { display: flex; }
+  .lock-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 36px 40px;
+    width: 100%; max-width: 360px;
+    text-align: center;
+    animation: fadeIn 0.25s ease;
+  }
+  .lock-icon { font-size: 36px; margin-bottom: 16px; }
+  .lock-title { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 6px; }
+  .lock-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .lock-error { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 16px; }
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; }
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+  /* ── LOADING ── */
+  .loading-pulse { animation: pulse 1.5s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  /* ── MEMBER CHIP ── */
+  .member-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .member-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+  .member-chip .remove { cursor: pointer; color: var(--text-dim); font-size: 14px; line-height: 1; transition: color 0.1s; }
+  .member-chip .remove:hover { color: var(--red); }
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface3); border: 1px solid var(--border-hover);
+    border-radius: var(--radius); padding: 10px 16px;
+    font-size: 13px; color: var(--text);
+    transform: translateY(60px); opacity: 0;
+    transition: all 0.25s ease; z-index: 200;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 16px; }
+    .g3 { grid-template-columns: 1fr 1fr; }
+    .g4 { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title" id="lock-title">Protected Area</div>
+    <div class="lock-sub" id="lock-sub">Enter the password to continue.</div>
+    <input type="password" id="lock-input" placeholder="Password" onkeydown="if(event.key==='Enter')submitLock()" style="margin-bottom:4px;" />
+    <div class="lock-error" id="lock-error"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:10px;" onclick="submitLock()">Unlock</button>
+    <button class="btn" style="width:100%;margin-top:8px;" onclick="closeLock()">Cancel</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon">📅</div>
+        <div>
+          <div class="logo-text">ScheduleSync</div>
+          <div class="logo-sub">Team coordination</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section">Schedule</div>
+      <div class="nav-item active" onclick="switchTab('input',this)">
+        <span class="nav-icon">✏️</span> My Schedule
+      </div>
+      <div class="nav-item" onclick="switchTab('master',this)">
+        <span class="nav-icon">🗓️</span> Master Calendar
+      </div>
+
+      <div class="nav-section">Insights</div>
+      <div class="nav-item" onclick="requireAuth('availability',this)">
+        <span class="nav-icon">🟢</span> Availability
+        <span class="lock-badge">🔒</span>
+      </div>
+      <div class="nav-item" onclick="requireAuth('analysis',this)">
+        <span class="nav-icon">✨</span> Analysis
+        <span class="lock-badge">🔒</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>Team members: <strong id="sb-member-count">0</strong></div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- MY SCHEDULE -->
+    <div id="tab-input" class="view active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">My Schedule</div>
+          <div class="page-sub">Set your availability for the week</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="focusAddMember()">+ Add member</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Team members</div>
+        <div class="g2" style="margin-bottom:12px;">
+          <div class="form-group" style="margin:0;">
+            <label>Your name</label>
+            <select id="sel-member" onchange="loadMemberSchedule()">
+              <option value="">— select —</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Add new member</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="new-member-name" placeholder="Full name…" id="new-name-input" />
+              <button class="btn btn-primary btn-sm" onclick="addMember()" style="white-space:nowrap;">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="member-chips" id="member-chips">
+          <div style="font-size:12px;color:var(--text-dim);padding:4px 0;">No members yet — add one above.</div>
+        </div>
+      </div>
+
+      <div id="schedule-input-card" style="display:none;">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div class="card-title" style="margin:0;">Week view</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn btn-sm" onclick="prevWeek()">←</button>
+              <div class="week-label" id="week-label" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);min-width:160px;text-align:center;"></div>
+              <button class="btn btn-sm" onclick="nextWeek()">→</button>
+              <select id="month-picker" onchange="goToMonth()" style="width:auto;padding:6px 10px;font-size:12px;">
+              </select>
+            </div>
+          </div>
+          <div class="day-grid" id="day-grid"></div>
+
+          <div class="day-edit-panel" id="day-edit-panel" style="display:none;">
+            <h4>Editing: <span id="editing-day-label" style="color:var(--text);font-weight:600;"></span></h4>
+            <div class="g3">
+              <div class="form-group" style="margin:0;">
+                <label>Status</label>
+                <select id="day-status">
+                  <option value="working">Working</option>
+                  <option value="remote">Remote</option>
+                  <option value="travel">Traveling</option>
+                  <option value="off">Day off</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label>Start time</label>
+                <input type="time" id="day-start" value="09:00" />
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label>End time</label>
+                <input type="time" id="day-end" value="17:00" />
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button class="btn btn-primary btn-sm" onclick="saveDay()">Save day</button>
+              <button class="btn btn-sm" onclick="clearDay()">Clear</button>
+              <button class="btn btn-sm" onclick="applyToWeek()">Apply to whole week</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MASTER CALENDAR -->
+    <div id="tab-master" class="view">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Master Calendar</div>
+          <div class="page-sub">Everyone's schedule at a glance</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="prevMasterWeek()">←</button>
+          <div class="week-label" id="master-week-label" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);min-width:160px;text-align:center;line-height:2;"></div>
+          <button class="btn btn-sm" onclick="nextMasterWeek()">→</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="legend" id="master-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent-light);"></div>Working</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div>Remote</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--amber);"></div>Travel</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim);"></div>Day off</div>
+        </div>
+        <div class="master-scroll">
+          <table class="sched-table" id="master-table"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AVAILABILITY -->
+    <div id="tab-availability" class="view">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Availability</div>
+          <div class="page-sub">Find when your team is free</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <label style="font-size:12px;color:var(--text-muted);">Min:</label>
+          <select id="min-people" onchange="renderAvailability()" style="width:auto;padding:6px 10px;font-size:12px;">
+            <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option>
+          </select>
+          <button class="btn btn-sm" onclick="prevAvWeek()">←</button>
+          <div class="week-label" id="av-week-label" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);min-width:160px;text-align:center;"></div>
+          <button class="btn btn-sm" onclick="nextAvWeek()">→</button>
+        </div>
+      </div>
+
+      <div class="g3" style="margin-bottom:16px;">
+        <div class="metric"><div class="metric-val" id="av-total-members" style="color:var(--accent-light);">0</div><div class="metric-lbl">members</div></div>
+        <div class="metric"><div class="metric-val" id="av-free-slots" style="color:var(--green);">0</div><div class="metric-lbl">open slots</div></div>
+        <div class="metric"><div class="metric-val" id="av-max-avail" style="color:var(--purple);">0</div><div class="metric-lbl">max simultaneous</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Overlapping windows</div>
+        <div id="av-slots-list"></div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS -->
+    <div id="tab-analysis" class="view">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Analysis</div>
+          <div class="page-sub">AI-powered scheduling insights</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick insights</div>
+        <div class="ai-chips">
+          <div class="ai-chip" onclick="runAI('Find the best times this week when the most team members are available simultaneously.')">🗓 Best meeting times</div>
+          <div class="ai-chip" onclick="runAI('Identify coverage gaps — times when no one is working. How could the team improve coverage?')">⚠️ Coverage gaps</div>
+          <div class="ai-chip" onclick="runAI('Who has the most availability this week? Who is the busiest? Summarize workload balance across the team.')">⚖️ Workload balance</div>
+          <div class="ai-chip" onclick="runAI('Suggest the optimal day and time for a 1-hour all-hands team meeting.')">📣 All-hands planner</div>
+          <div class="ai-chip" onclick="runAI('Give a full weekly summary: who is working when, any scheduling conflicts, and top recommendations.')">📋 Full summary</div>
+        </div>
+        <div class="ai-input-row" style="margin-bottom:12px;">
+          <input type="text" id="ai-custom-q" placeholder="Ask anything about your team schedule…" onkeydown="if(event.key==='Enter')runAI(document.getElementById('ai-custom-q').value)" />
+          <button class="btn btn-primary btn-sm" onclick="runAI(document.getElementById('ai-custom-q').value)">Ask →</button>
+        </div>
+        <div class="ai-output" id="ai-output">Add team schedules, then click a prompt above — or ask your own question.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── DATA ──
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const COLORS = [
+  { bg:'rgba(91,110,245,0.2)', text:'#7b8fff', dot:'#5b6ef5' },
+  { bg:'rgba(62,207,142,0.15)', text:'#3ecf8e', dot:'#3ecf8e' },
+  { bg:'rgba(245,166,35,0.15)', text:'#f5a623', dot:'#f5a623' },
+  { bg:'rgba(167,139,250,0.15)', text:'#a78bfa', dot:'#a78bfa' },
+  { bg:'rgba(245,96,96,0.15)', text:'#f56060', dot:'#f56060' },
+  { bg:'rgba(56,189,248,0.15)', text:'#38bdf8', dot:'#38bdf8' },
+];
+
+// !! CHANGE THIS PASSWORD !!
+const APP_PASSWORD = 'schedule2024';
+
+let members = [];
+let schedules = {};
+let currentWeekStart = getMonday(new Date());
+let masterWeekStart = getMonday(new Date());
+let avWeekStart = getMonday(new Date());
+let selectedDay = null;
+let currentMember = null;
+let unlockedTabs = new Set();
+let pendingTab = null;
+let pendingNavEl = null;
+
+// ── DATE UTILS ──
+function getMonday(d) {
+  const dt = new Date(d); const day = dt.getDay();
+  dt.setDate(dt.getDate() - day + (day === 0 ? -6 : 1));
+  dt.setHours(0,0,0,0); return dt;
+}
+function addDays(d, n) { const dt = new Date(d); dt.setDate(dt.getDate()+n); return dt; }
+function fmtDate(d) { return d.toISOString().slice(0,10); }
+function fmtWeek(d) { return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
+function timeToMins(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+function minsToTime(m) { return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── LOCK ──
+function requireAuth(tab, navEl) {
+  if (unlockedTabs.has('all')) { switchTab(tab, navEl); return; }
+  pendingTab = tab; pendingNavEl = navEl;
+  const names = { availability: 'Availability', analysis: 'Analysis' };
+  document.getElementById('lock-title').textContent = names[tab] || 'Protected Area';
+  document.getElementById('lock-sub').textContent = `This section is password protected.`;
+  document.getElementById('lock-input').value = '';
+  document.getElementById('lock-error').textContent = '';
+  document.getElementById('lock-screen').classList.add('show');
+  setTimeout(() => document.getElementById('lock-input').focus(), 50);
+}
+function submitLock() {
+  const val = document.getElementById('lock-input').value;
+  if (val === APP_PASSWORD) {
+    unlockedTabs.add('all');
+    document.getElementById('lock-screen').classList.remove('show');
+    toast('✓ Unlocked');
+    if (pendingTab) { switchTab(pendingTab, pendingNavEl); pendingTab = null; pendingNavEl = null; }
+  } else {
+    document.getElementById('lock-error').textContent = 'Incorrect password. Try again.';
+    document.getElementById('lock-input').value = '';
+    document.getElementById('lock-input').focus();
+  }
+}
+function closeLock() { document.getElementById('lock-screen').classList.remove('show'); }
+
+// ── NAV ──
+function switchTab(tab, navEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  if (tab === 'master') renderMaster();
+  if (tab === 'availability') renderAvailability();
+}
+
+// ── MEMBERS ──
+function addMember() {
+  const name = document.getElementById('new-member-name').value.trim();
+  if (!name) return;
+  if (members.find(m => m.name === name)) { toast('⚠️ Already exists'); return; }
+  const idx = members.length;
+  members.push({ name, color: COLORS[idx % COLORS.length] });
+  schedules[name] = {};
+  document.getElementById('new-member-name').value = '';
+  updateAll();
+  toast(`✓ Added ${name}`);
+}
+function removeMember(name) {
+  members = members.filter(m => m.name !== name);
+  delete schedules[name];
+  if (currentMember === name) { currentMember = null; document.getElementById('schedule-input-card').style.display = 'none'; }
+  updateAll();
+  toast(`Removed ${name}`);
+}
+function focusAddMember() { document.getElementById('new-member-name').focus(); }
+function updateAll() {
+  updateMemberSelect();
+  updateMemberChips();
+  document.getElementById('sb-member-count').textContent = members.length;
+}
+function updateMemberSelect() {
+  const sel = document.getElementById('sel-member');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— select member —</option>';
+  members.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name; opt.textContent = m.name; sel.appendChild(opt);
+  });
+  if (members.find(m => m.name === cur)) sel.value = cur;
+}
+function updateMemberChips() {
+  const el = document.getElementById('member-chips');
+  if (members.length === 0) { el.innerHTML = '<div style="font-size:12px;color:var(--text-dim);padding:4px 0;">No members yet — add one above.</div>'; return; }
+  el.innerHTML = members.map(m => `
+    <div class="member-chip">
+      <div class="avatar" style="background:${m.color.bg};color:${m.color.text};width:22px;height:22px;font-size:9px;">${initials(m.name)}</div>
+      <span style="font-size:12px;">${m.name}</span>
+      <span class="remove" onclick="removeMember('${m.name.replace(/'/g,"\\'")}')">×</span>
+    </div>
+  `).join('');
+}
+function initials(name) { return name.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase(); }
+
+// ── SCHEDULE INPUT ──
+function loadMemberSchedule() {
+  const name = document.getElementById('sel-member').value;
+  currentMember = name || null;
+  document.getElementById('schedule-input-card').style.display = name ? '' : 'none';
+  selectedDay = null;
+  document.getElementById('day-edit-panel').style.display = 'none';
+  if (name) { document.getElementById('week-label').textContent = fmtWeek(currentWeekStart); renderDayGrid(); }
+}
+function initMonthPicker() {
+  const el = document.getElementById('month-picker');
+  const now = new Date();
+  for (let m = -1; m <= 5; m++) {
+    const d = new Date(now.getFullYear(), now.getMonth()+m, 1);
+    const opt = document.createElement('option');
+    opt.value = `${d.getFullYear()}-${d.getMonth()}`;
+    opt.textContent = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    if (m === 0) opt.selected = true;
+    el.appendChild(opt);
+  }
+}
+function goToMonth() {
+  const [y,m] = document.getElementById('month-picker').value.split('-').map(Number);
+  currentWeekStart = getMonday(new Date(y, m, 1));
+  renderDayGrid();
+}
+function renderDayGrid() {
+  document.getElementById('week-label').textContent = fmtWeek(currentWeekStart);
+  const grid = document.getElementById('day-grid');
+  grid.innerHTML = '';
+  if (!currentMember) return;
+  DAYS.forEach((day, i) => {
+    const dt = addDays(currentWeekStart, i);
+    const key = fmtDate(dt);
+    const entry = schedules[currentMember]?.[key];
+    const isSelected = selectedDay === key;
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (isSelected ? ' selected' : '') + (entry ? ' has-entry' : '');
+    cell.onclick = () => selectDay(key, day, dt);
+    let tagHtml = '';
+    if (entry) {
+      const cls = `tag-${entry.status}`;
+      const label = entry.status === 'off' ? 'Off' : entry.status === 'travel' ? 'Travel' : `${entry.start}`;
+      tagHtml = `<div class="dc-tag ${cls}">${label}</div>`;
+    }
+    cell.innerHTML = `<div class="dc-name">${day}</div><div class="dc-num">${dt.getDate()}</div>${tagHtml}`;
+    grid.appendChild(cell);
+  });
+}
+function selectDay(key, dayName, dt) {
+  selectedDay = key;
+  document.getElementById('editing-day-label').textContent = `${dayName}, ${MONTHS[dt.getMonth()]} ${dt.getDate()}`;
+  const entry = schedules[currentMember]?.[key];
+  document.getElementById('day-status').value = entry?.status || 'working';
+  document.getElementById('day-start').value = entry?.start || '09:00';
+  document.getElementById('day-end').value = entry?.end || '17:00';
+  document.getElementById('day-edit-panel').style.display = '';
+  renderDayGrid();
+}
+function saveDay() {
+  if (!currentMember || !selectedDay) return;
+  if (!schedules[currentMember]) schedules[currentMember] = {};
+  schedules[currentMember][selectedDay] = {
+    status: document.getElementById('day-status').value,
+    start: document.getElementById('day-start').value,
+    end: document.getElementById('day-end').value
+  };
+  renderDayGrid(); toast('✓ Saved');
+}
+function clearDay() {
+  if (!currentMember || !selectedDay) return;
+  delete schedules[currentMember]?.[selectedDay];
+  renderDayGrid(); toast('Cleared');
+}
+function applyToWeek() {
+  if (!currentMember) return;
+  const status = document.getElementById('day-status').value;
+  const start = document.getElementById('day-start').value;
+  const end = document.getElementById('day-end').value;
+  if (!schedules[currentMember]) schedules[currentMember] = {};
+  DAYS.forEach((_,i) => {
+    const dt = addDays(currentWeekStart, i);
+    schedules[currentMember][fmtDate(dt)] = { status, start, end };
+  });
+  renderDayGrid(); toast('✓ Applied to full week');
+}
+function prevWeek() { currentWeekStart = addDays(currentWeekStart, -7); renderDayGrid(); }
+function nextWeek() { currentWeekStart = addDays(currentWeekStart, 7); renderDayGrid(); }
+
+// ── MASTER ──
+function renderMaster() {
+  document.getElementById('master-week-label').textContent = fmtWeek(masterWeekStart);
+  const table = document.getElementById('master-table');
+  let html = '<thead><tr><th>Member</th>';
+  DAYS.forEach((_,i) => {
+    const dt = addDays(masterWeekStart, i);
+    html += `<th>${DAYS[i]}<br><span style="font-family:'DM Mono',monospace;font-weight:400;font-size:10px;">${dt.getDate()}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+  if (!members.length) {
+    html += `<tr><td colspan="8"><div class="empty"><div class="empty-icon">👥</div>No members yet</div></td></tr>`;
+  }
+  members.forEach(m => {
+    html += `<tr><td><div class="member-cell">
+      <div class="avatar" style="background:${m.color.bg};color:${m.color.text};">${initials(m.name)}</div>
+      <span style="font-size:12px;font-weight:500;">${m.name}</span>
+    </div></td>`;
+    DAYS.forEach((_,i) => {
+      const dt = addDays(masterWeekStart, i);
+      const entry = schedules[m.name]?.[fmtDate(dt)];
+      if (!entry) { html += '<td><span style="color:var(--text-dim);font-size:11px;">—</span></td>'; return; }
+      let bg='', color='', label='';
+      if (entry.status === 'working') { bg='var(--accent-dim)'; color='var(--accent-light)'; label=`${entry.start}–${entry.end}`; }
+      else if (entry.status === 'remote') { bg='var(--green-dim)'; color='var(--green)'; label=`Remote`; }
+      else if (entry.status === 'travel') { bg='var(--amber-dim)'; color='var(--amber)'; label='Travel'; }
+      else { bg='rgba(255,255,255,0.04)'; color='var(--text-dim)'; label='Off'; }
+      html += `<td><span class="cell-pill" style="background:${bg};color:${color};">${label}</span></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+function prevMasterWeek() { masterWeekStart = addDays(masterWeekStart, -7); renderMaster(); }
+function nextMasterWeek() { masterWeekStart = addDays(masterWeekStart, 7); renderMaster(); }
+
+// ── AVAILABILITY ALGORITHM ──
+function findFreeSlots(weekStart, minPeople) {
+  const slots = [];
+  DAYS.forEach((_,i) => {
+    const dt = addDays(weekStart, i);
+    const key = fmtDate(dt);
+    const avail = [];
+    members.forEach(m => {
+      const e = schedules[m.name]?.[key];
+      if (e && (e.status === 'working' || e.status === 'remote')) {
+        avail.push({ name: m.name, start: timeToMins(e.start), end: timeToMins(e.end) });
+      }
+    });
+    if (avail.length < minPeople) return;
+    const times = new Set();
+    avail.forEach(a => { times.add(a.start); times.add(a.end); });
+    const sorted = [...times].sort((a,b)=>a-b);
+    for (let t = 0; t < sorted.length-1; t++) {
+      const s = sorted[t], e = sorted[t+1], mid = (s+e)/2;
+      const present = avail.filter(a => a.start <= mid && a.end >= mid);
+      if (present.length >= minPeople) {
+        slots.push({ dayIdx: i, day: DAYS[i], dateNum: dt.getDate(), month: MONTHS[dt.getMonth()], start: s, end: e, members: present.map(p=>p.name), count: present.length });
+      }
+    }
+  });
+  return slots;
+}
+function mergeSlots(slots) {
+  if (!slots.length) return [];
+  slots.sort((a,b) => a.start-b.start || b.count-a.count);
+  const merged = []; let cur = {...slots[0]};
+  for (let i = 1; i < slots.length; i++) {
+    const s = slots[i];
+    if (s.start <= cur.end && s.members.join(',') === cur.members.join(',')) cur.end = Math.max(cur.end, s.end);
+    else { merged.push(cur); cur = {...s}; }
+  }
+  merged.push(cur); return merged;
+}
+function renderAvailability() {
+  document.getElementById('av-week-label').textContent = fmtWeek(avWeekStart);
+  document.getElementById('av-total-members').textContent = members.length;
+  const minP = parseInt(document.getElementById('min-people').value);
+  const slots = findFreeSlots(avWeekStart, minP);
+  document.getElementById('av-free-slots').textContent = slots.length;
+  document.getElementById('av-max-avail').textContent = slots.length ? Math.max(...slots.map(s=>s.count)) : 0;
+  const list = document.getElementById('av-slots-list');
+  if (!members.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">👥</div>Add members and schedules first.</div>'; return; }
+  if (!slots.length) { list.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div>No slots with ${minP}+ people. Lower the minimum or check schedules.</div>`; return; }
+  const grouped = {};
+  slots.forEach(s => { const k=`${s.day}|${s.month}|${s.dateNum}`; if(!grouped[k])grouped[k]=[];  grouped[k].push(s); });
+  let html = '';
+  Object.entries(grouped).forEach(([dk, daySlots]) => {
+    const [day, mon, num] = dk.split('|');
+    html += `<div class="avail-day-header">${day}, ${mon} ${num}</div>`;
+    mergeSlots(daySlots).forEach(slot => {
+      const pct = members.length ? Math.round(slot.count/members.length*100) : 0;
+      html += `<div class="avail-slot">
+        <div>
+          <div class="avail-time">${minsToTime(slot.start)} – ${minsToTime(slot.end)}</div>
+          <div class="avail-names">${slot.members.join(' · ')}</div>
+        </div>
+        <div class="avail-badge">
+          <span class="count-pill">${slot.count} people</span>
+          <span class="pct-label">${pct}%</span>
+        </div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html;
+}
+function prevAvWeek() { avWeekStart = addDays(avWeekStart, -7); renderAvailability(); }
+function nextAvWeek() { avWeekStart = addDays(avWeekStart, 7); renderAvailability(); }
+
+// ── AI ──
+function buildContext() {
+  let ctx = `Team: ${members.map(m=>m.name).join(', ') || 'none'}\nWeek: ${fmtWeek(avWeekStart)}\n\n`;
+  members.forEach(m => {
+    ctx += `${m.name}:\n`;
+    let any = false;
+    for (let i=0;i<7;i++) {
+      const dt = addDays(avWeekStart, i), key = fmtDate(dt), e = schedules[m.name]?.[key];
+      if (e) { any=true; ctx += `  ${DAYS[i]} ${MONTHS[dt.getMonth()]} ${dt.getDate()}: ${e.status}${e.status!=='off'?` ${e.start}–${e.end}`:''}\n`; }
+    }
+    if (!any) ctx += '  No schedule this week\n';
+  });
+  const slots = findFreeSlots(avWeekStart, 1);
+  ctx += '\nOverlapping free windows:\n';
+  if (!slots.length) { ctx += 'None.\n'; }
+  else {
+    const grouped = {};
+    slots.forEach(s => { const k=`${s.day} ${s.month} ${s.dateNum}`; if(!grouped[k])grouped[k]=[]; grouped[k].push(s); });
+    Object.entries(grouped).forEach(([day,ds]) => {
+      mergeSlots(ds).forEach(slot => { ctx += `  ${day}: ${minsToTime(slot.start)}–${minsToTime(slot.end)} — ${slot.members.join(', ')} (${slot.count})\n`; });
+    });
+  }
+  return ctx;
+}
+async function runAI(q) {
+  if (!q?.trim()) return;
+  document.getElementById('ai-custom-q').value = '';
+  const box = document.getElementById('ai-output');
+  box.textContent = 'Analyzing…'; box.classList.add('loading-pulse');
+  const prompt = `You are a scheduling assistant. Schedule data:\n\n${buildContext()}\n\nUser: ${q}\n\nRespond clearly and concisely. Use bullet points where helpful. Be specific with times and names.`;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    const d = await r.json();
+    box.classList.remove('loading-pulse');
+    box.textContent = d.content?.[0]?.text || 'No response received.';
+  } catch(e) {
+    box.classList.remove('loading-pulse');
+    box.textContent = 'Connection error. Please try again.';
+  }
+}
+
+// ── INIT ──
+initMonthPicker();
+updateAll();
+
+// Demo data
+const demoData = [
+  { name:'Alex Chen', sched: [[0,'working','09:00','18:00'],[1,'working','09:00','18:00'],[2,'working','09:00','13:00'],[3,'working','09:00','18:00'],[4,'working','09:00','17:00']] },
+  { name:'Jordan Lee', sched: [[0,'working','10:00','19:00'],[2,'working','10:00','19:00'],[3,'working','10:00','19:00'],[4,'remote','10:00','16:00'],[5,'working','10:00','14:00']] },
+  { name:'Sam Rivera', sched: [[0,'remote','08:00','16:00'],[1,'working','08:00','16:00'],[2,'working','08:00','16:00'],[4,'working','08:00','16:00']] }
+];
+const today = getMonday(new Date());
+demoData.forEach(dm => {
+  const idx = members.length;
+  members.push({ name: dm.name, color: COLORS[idx % COLORS.length] });
+  schedules[dm.name] = {};
+  dm.sched.forEach(([di, status, start, end]) => {
+    schedules[dm.name][fmtDate(addDays(today, di))] = { status, start, end };
+  });
+});
+updateAll();
+</script>
+</body>
+</html>
